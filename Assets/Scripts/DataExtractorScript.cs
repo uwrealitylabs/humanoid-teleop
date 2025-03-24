@@ -29,18 +29,9 @@ public class UGDataExtractorScript : MonoBehaviour
     private CancellationTokenSource cts;
     private string wsUrl;
     
-    // Delegate for message handling
+    // Delegate for receiving messages (will be used for robot diagnostics)
     public delegate void MessageReceivedHandler(string message);
     public event MessageReceivedHandler OnMessageReceived;
-
-    // Data gathering settings - determines which features are analyzed
-    [Header("Enable/Disable Data Gathering")]
-    public bool leftHandDataEnabled = true;
-    public bool rightHandDataEnabled = true;
-    public bool twoHandDataEnabled = true;
-
-    // Config for transform features
-    private TransformConfig transformConfig;
 
     // Hand data output arrays - used by other scripts
     [HideInInspector]
@@ -65,8 +56,6 @@ public class UGDataExtractorScript : MonoBehaviour
             gameObject.SetActive(false);
             return;
         }
-        // Initialize transform config
-        transformConfig = new();
 
         // Get WebSocket URL from environment variable
         if (env.TryParseEnvironmentVariable("URL", out string url))
@@ -238,10 +227,6 @@ public class UGDataExtractorScript : MonoBehaviour
 
     private float[] GetOneHandData(FingerFeatureStateProvider fingersFeatureProvider)
     {
-        
-        if (fingersFeatureProvider == null){
-            Debug.Log("fingersFeatureProvider: " + !fingersFeatureProvider);
-        }
         float indexFingerCurl = fingersFeatureProvider.GetFeatureValue(HandFinger.Index, FingerFeature.Curl) ?? 0.0f;
         float indexFingerAbduction = fingersFeatureProvider.GetFeatureValue(HandFinger.Index, FingerFeature.Abduction) ?? 0.0f;
         float indexFingerFlexion = fingersFeatureProvider.GetFeatureValue(HandFinger.Index, FingerFeature.Flexion) ?? 0.0f;
