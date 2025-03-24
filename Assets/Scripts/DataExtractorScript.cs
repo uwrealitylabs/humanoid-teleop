@@ -4,6 +4,13 @@ using UnityEngine;
 using Oculus.Interaction;
 using Oculus.Interaction.PoseDetection;
 using Oculus.Interaction.Input;
+using System.Text;
+using Newtonsoft.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+using System.Net.WebSockets;
+using CandyCoded.env;
 
 public class UGDataExtractorScript : MonoBehaviour
 {
@@ -16,13 +23,21 @@ public class UGDataExtractorScript : MonoBehaviour
     private FingerFeatureStateProvider leftFingerFeatureStateProvider;
     private FingerFeatureStateProvider rightFingerFeatureStateProvider;
 
+    // WebSocket connection
+    private ClientWebSocket webSocket;
+    private bool isConnected = false;
+    private CancellationTokenSource cts;
+    private string wsUrl;
+    
+    // Delegate for message handling
+    public delegate void MessageReceivedHandler(string message);
+    public event MessageReceivedHandler OnMessageReceived;
 
     // Data gathering settings - determines which features are analyzed
     [Header("Enable/Disable Data Gathering")]
     public bool leftHandDataEnabled = true;
     public bool rightHandDataEnabled = true;
     public bool twoHandDataEnabled = true;
-
 
     // Config for transform features
     private TransformConfig transformConfig;
@@ -38,6 +53,7 @@ public class UGDataExtractorScript : MonoBehaviour
     // Constants
     public const int ONE_HAND_NUM_FEATURES = 17;
     public const int TWO_HAND_NUM_FEATURES = 44;
+    
 
     void Start()
     {
@@ -51,20 +67,153 @@ public class UGDataExtractorScript : MonoBehaviour
         }
         // Initialize transform config
         transformConfig = new();
+
+        // Get WebSocket URL from environment variable
+        if (env.TryParseEnvironmentVariable("URL", out string url))
+        {
+            wsUrl = url;
+            Debug.Log($"WebSocket URL from environment: {wsUrl}");
+            
+            // Start WebSocket connection
+            ConnectWebSocket();
+        }
+        else
+        {
+            Debug.LogError("Failed to get WebSocket URL from environment variable. Please ensure the URL environment variable is set.");
+        }
+    }
+
+    private async void ConnectWebSocket()
+    {
+        try
+        {
+            webSocket = new ClientWebSocket();
+            cts = new CancellationTokenSource();
+            
+            Debug.Log($"Connecting to WebSocket server at {wsUrl}...");
+            await webSocket.ConnectAsync(new System.Uri(wsUrl), cts.Token);
+            
+            isConnected = true;
+            Debug.Log("WebSocket connected successfully!");
+            
+            // Start listening for messages
+            StartCoroutine(StartReceiveLoop());
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"WebSocket connection error: {e.Message}");
+            // Attempt reconnection after delay
+            StartCoroutine(ReconnectAfterDelay());
+        }
+    }
+
+    private IEnumerator ReconnectAfterDelay()
+    {
+        yield return new WaitForSeconds(5f);
+        if (!isConnected)
+        {
+            Debug.Log("Attempting to reconnect...");
+            ConnectWebSocket();
+        }
+    }
+
+    private async Task ReceiveLoop()
+    {
+        byte[] buffer = new byte[4096];
+        
+        while (isConnected && webSocket.State == WebSocketState.Open)
+        {
+            try
+            {
+                ArraySegment<byte> segment = new ArraySegment<byte>(buffer);
+                WebSocketReceiveResult result = await webSocket.ReceiveAsync(segment, cts.Token);
+                
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    isConnected = false;
+                    Debug.Log("WebSocket connection closed by server");
+                    break;
+                }
+                
+                if (result.MessageType == WebSocketMessageType.Text)
+                {
+                    string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    Debug.Log($"Received message: {message}");
+                    OnMessageReceived?.Invoke(message);
+                }
+            }
+            catch (System.Exception e)
+            {
+                if (!cts.Token.IsCancellationRequested)
+                {
+                    Debug.LogError($"Error in WebSocket receive loop: {e.Message}");
+                    isConnected = false;
+                }
+                break;
+            }
+        }
+    }
+
+    private IEnumerator StartReceiveLoop()
+    {
+        Task receiveTask = ReceiveLoop();
+        while (!receiveTask.IsCompleted)
+        {
+            yield return null;
+        }
+        
+        if (receiveTask.IsFaulted)
+        {
+            Debug.LogError($"ReceiveLoop failed: {receiveTask.Exception}");
+        }
+    }
+
+    private async Task SendMessage(string message)
+    {
+        if (!isConnected || webSocket.State != WebSocketState.Open)
+            return;
+            
+        try
+        {
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, cts.Token);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Send message error: {e.Message}");
+            isConnected = false;
+        }
     }
 
     void Update()
     {
-
-        // leftHandData = GetOneHandData(leftFingerFeatureStateProvider);
-        // Debug.Log("Left Hand Data: " + string.Join(", ", leftHandData));
-
+        // Update all hand data arrays
+        leftHandData = GetOneHandData(leftFingerFeatureStateProvider);
         rightHandData = GetOneHandData(rightFingerFeatureStateProvider);
-        Debug.Log("Right Hand Data: " + string.Join(", ", rightHandData));
+        twoHandsData = GetTwoHandsData();
 
-        // twoHandsData = GetTwoHandsData();
-        // Debug.Log("Two Hands Data: " + string.Join(", ", twoHandsData));
+        // Send right hand data to WebSocket server
+        if (isConnected && webSocket != null)
+        {
+            var data = new
+            {
+                type = "rightHandData",
+                handData = rightHandData
+            };
+            string jsonData = JsonConvert.SerializeObject(data);
+            SendMessage(jsonData).ConfigureAwait(false);
+        }
+    }
 
+    void OnDestroy()
+    {
+        if (isConnected && webSocket != null)
+        {
+            isConnected = false;
+            cts.Cancel();
+            webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Application closing", CancellationToken.None);
+            cts.Dispose();
+        }
     }
 
     bool SetupAndValidateConfiguration()

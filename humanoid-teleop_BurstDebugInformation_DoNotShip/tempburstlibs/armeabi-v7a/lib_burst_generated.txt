@@ -24,6 +24,7 @@ Library: /Users/rafael/Projects/humanoid-teleop/Temp/BurstOutput/tempburstlibs/a
 --assembly-defines=Meta.Voice.NLayer;
 --assembly-defines=Unity.VisualScripting.Flow;
 --assembly-defines=Meta.Wit.Dictation;
+--assembly-defines=CandyCoded.env;
 --assembly-defines=Unity.RenderPipelines.Core.ShaderLibrary;
 --assembly-defines=Oculus.Interaction.OVR;
 --assembly-defines=Unity.TextMeshPro;
@@ -48,8 +49,8 @@ Library: /Users/rafael/Projects/humanoid-teleop/Temp/BurstOutput/tempburstlibs/a
 --assembly-defines=Meta.XR.ImmersiveDebugger.Interface;
 --assembly-defines=Oculus.Platform;
 --assembly-defines=Meta.WitAi.TTS;
---assembly-defines=Unity.XR.Oculus;
 --assembly-defines=Meta.Wit.Composer;
+--assembly-defines=Unity.XR.Oculus;
 --assembly-defines=Meta.XR.ImmersiveDebugger;
 --assembly-defines=Meta.XR.Audio;
 --assembly-defines=Meta.Net.endel.nativewebsocket;
@@ -118,6 +119,7 @@ Library: /Users/rafael/Projects/humanoid-teleop/Temp/BurstOutput/tempburstlibs/a
 --assembly-defines=Meta.Voice.NLayer;
 --assembly-defines=Unity.VisualScripting.Flow;
 --assembly-defines=Meta.Wit.Dictation;
+--assembly-defines=CandyCoded.env;
 --assembly-defines=Unity.RenderPipelines.Core.ShaderLibrary;
 --assembly-defines=Oculus.Interaction.OVR;
 --assembly-defines=Unity.TextMeshPro;
@@ -142,8 +144,8 @@ Library: /Users/rafael/Projects/humanoid-teleop/Temp/BurstOutput/tempburstlibs/a
 --assembly-defines=Meta.XR.ImmersiveDebugger.Interface;
 --assembly-defines=Oculus.Platform;
 --assembly-defines=Meta.WitAi.TTS;
---assembly-defines=Unity.XR.Oculus;
 --assembly-defines=Meta.Wit.Composer;
+--assembly-defines=Unity.XR.Oculus;
 --assembly-defines=Meta.XR.ImmersiveDebugger;
 --assembly-defines=Meta.XR.Audio;
 --assembly-defines=Meta.Net.endel.nativewebsocket;

@@ -305,6 +305,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "xyz.candycoded.env": {
+      "version": "https://github.com/CandyCoded/env.git#v1.1.5",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "0199164aab5e5986cb32936c61e38216e3208fc3"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,
