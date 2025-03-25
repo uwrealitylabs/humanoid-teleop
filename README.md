@@ -1,6 +1,18 @@
 # Humanoid Teleoperation
 Unity/C# repository for Humanoid Teleoperation
 # Setup
+Before running the project, you need to set up the WebSocket server from the [Humanoid Server](https://github.com/uwrealitylabs/humanoid-server) repository:
+
+1. Copy the `.env.example` file to create your own `.env` file
+2. Edit the `.env` file and replace the placeholder URL with your WebSocket server's address:
+   ```
+   URL=ws://your.ip.address:3001
+   ```
+   Replace `your.ip.address` with your computer's IP address (e.g., `192.168.1.100`). You can find your IP address using:
+   - Windows: `ipconfig` in Command Prompt
+   - macOS/Linux: `ifconfig` or `ip addr` in Terminal
+3. Make sure your Quest headset and development machine are on the same network
+4. The `.env` file should be in the project root directory (same level as the `Assets` folder)
 ## Unity 2022.3.24f1
 Unity is the editor that we use to create 3D/XR applications. We will be using it as our engine for the project. 
 1. Download the [Unity Hub](https://unity.com/download), then use it to install Editor version 2022.3.24f1.
