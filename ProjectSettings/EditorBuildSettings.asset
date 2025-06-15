@@ -5,11 +5,16 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/HumanoidTeleop.unity
+    guid: a14598d68ec3d40c89726a5a480261b3
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: a64e84d337b244492ab4e944af488f3a,
       type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: fd8f0f81c27ac4b8ea5e5946848d9822,
+      type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: cb3520d0aaaf04f4e873d76cdc0aa3d7,
       type: 2}
