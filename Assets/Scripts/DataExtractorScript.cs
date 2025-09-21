@@ -44,7 +44,8 @@ public class UGDataExtractorScript : MonoBehaviour
     // Constants
     public const int ONE_HAND_NUM_FEATURES = 17;
     public const int TWO_HAND_NUM_FEATURES = 44;
-    
+
+    public GameObject startMenu;
 
     void Start()
     {
@@ -63,8 +64,7 @@ public class UGDataExtractorScript : MonoBehaviour
             wsUrl = url;
             Debug.Log($"WebSocket URL from environment: {wsUrl}");
             
-            // Start WebSocket connection
-            ConnectWebSocket();
+            
         }
         else
         {
@@ -72,7 +72,7 @@ public class UGDataExtractorScript : MonoBehaviour
         }
     }
 
-    private async void ConnectWebSocket()
+    public async void ConnectWebSocket()
     {
         try
         {
@@ -87,6 +87,9 @@ public class UGDataExtractorScript : MonoBehaviour
             
             // Start listening for messages
             StartCoroutine(StartReceiveLoop());
+
+            //Remove start menu
+            startMenu.SetActive(false);
         }
         catch (System.Exception e)
         {
