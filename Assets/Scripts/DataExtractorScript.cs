@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using Oculus.Interaction;
 using Oculus.Interaction.PoseDetection;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using System;
 using System.Net.WebSockets;
 using CandyCoded.env;
+using Oculus.Interaction.Editor.Generated;
 
 public class UGDataExtractorScript : MonoBehaviour
 {
@@ -28,7 +30,8 @@ public class UGDataExtractorScript : MonoBehaviour
     private bool isConnected = false;
     private CancellationTokenSource cts;
     private string wsUrl;
-    
+    private bool _isReceiving = false;
+
     // Delegate for receiving messages (will be used for robot diagnostics)
     public delegate void MessageReceivedHandler(string message);
     public event MessageReceivedHandler OnMessageReceived;
@@ -45,10 +48,16 @@ public class UGDataExtractorScript : MonoBehaviour
     public const int ONE_HAND_NUM_FEATURES = 17;
     public const int TWO_HAND_NUM_FEATURES = 44;
 
+    //UI
     public GameObject startMenu;
+    public GameObject socketConnectedText;
+    public GameObject cantConnectSocketText;
 
     void Start()
     {
+        //deactivate
+        socketConnectedText.SetActive(false);
+        cantConnectSocketText.SetActive(false);
         // Set up data sources
         bool setupSuccess = SetupAndValidateConfiguration();
         if (!setupSuccess)
@@ -70,6 +79,7 @@ public class UGDataExtractorScript : MonoBehaviour
         {
             Debug.LogError("Failed to get WebSocket URL from environment variable. Please ensure the URL environment variable is set.");
         }
+
     }
 
     public async void ConnectWebSocket()
@@ -81,19 +91,32 @@ public class UGDataExtractorScript : MonoBehaviour
             
             Debug.Log($"Connecting to WebSocket server at {wsUrl}...");
             await webSocket.ConnectAsync(new System.Uri(wsUrl), cts.Token);
-            
-            isConnected = true;
-            Debug.Log("WebSocket connected successfully!");
-            
-            // Start listening for messages
-            StartCoroutine(StartReceiveLoop());
 
             //Remove start menu
             startMenu.SetActive(false);
+
+            //indicate successful connection
+            socketConnectedText.SetActive(true);
+            cantConnectSocketText.SetActive(false);
+
+            isConnected = true;
+            Debug.Log("WebSocket connected successfully!");
+
+
+
+            // Start listening for messages
+            StartCoroutine(StartReceiveLoop());
+
+
+
+
         }
         catch (System.Exception e)
         {
             Debug.LogError($"WebSocket connection error: {e.Message}");
+
+            //indicate unsuccessful connection
+            cantConnectSocketText.SetActive(true);
             // Attempt reconnection after delay
             StartCoroutine(ReconnectAfterDelay());
         }
@@ -111,7 +134,17 @@ public class UGDataExtractorScript : MonoBehaviour
 
     private async Task ReceiveLoop()
     {
+        if (_isReceiving)
+        {
+            Debug.LogWarning("Receive loop already running");
+            return;
+        }
+
+        _isReceiving = true;
+
         byte[] buffer = new byte[4096];
+
+        MemoryStream messageStream = new MemoryStream();
         
         while (isConnected && webSocket.State == WebSocketState.Open)
         {
@@ -126,12 +159,32 @@ public class UGDataExtractorScript : MonoBehaviour
                     Debug.Log("WebSocket connection closed by server");
                     break;
                 }
-                
+                //ewfm
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
-                    string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Debug.Log($"Received message: {message}");
-                    OnMessageReceived?.Invoke(message);
+                    messageStream.Write(buffer, 0, result.Count);
+
+                    // Check if this is the final message fragment
+                    if (result.EndOfMessage)
+                    {
+                        string message = Encoding.UTF8.GetString(messageStream.ToArray());
+                        Debug.Log($"Received message: {message}");
+                        OnMessageReceived?.Invoke(message);
+
+                        // Reset the stream for the next message
+                        messageStream.SetLength(0);
+                    }
+                }
+                else if (result.MessageType == WebSocketMessageType.Binary)
+                {
+                    // Handle binary messages if needed
+                    messageStream.Write(buffer, 0, result.Count);
+
+                    if (result.EndOfMessage)
+                    {
+                        // Process binary message
+                        messageStream.SetLength(0);
+                    }
                 }
             }
             catch (System.Exception e)
