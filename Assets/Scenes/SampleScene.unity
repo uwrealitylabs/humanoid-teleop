@@ -1952,7 +1952,7 @@ GameObject:
   - component: {fileID: 954572162}
   - component: {fileID: 954572161}
   m_Layer: 0
-  m_Name: Canvas
+  m_Name: StartMenuCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3082,7 +3082,7 @@ Transform:
   m_GameObject: {fileID: 1503190273}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.0597142, z: -0, w: 0.99821556}
-  m_LocalPosition: {x: -0.018138051, y: -0.40404, z: -6.61}
+  m_LocalPosition: {x: -0.018138051, y: 1.49, z: -6.61}
   m_LocalScale: {x: 1, y: 0.50828, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3473,7 +3473,7 @@ GameObject:
   - component: {fileID: 1630168692}
   - component: {fileID: 1630168691}
   m_Layer: 0
-  m_Name: Toggle
+  m_Name: StartToggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3917,7 +3917,7 @@ GameObject:
   - component: {fileID: 1759918554}
   - component: {fileID: 1759918553}
   m_Layer: 0
-  m_Name: Panel
+  m_Name: StartMenuBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
