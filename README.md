@@ -20,6 +20,23 @@ Before running the project, you need to set up the
 3. Make sure your Quest headset and development machine are on the same network
 4. The `.env` file should be in the project root directory (same level as the
    `Assets` folder)
+   
+### If the local IP address doesn't work
+If your Quest cannot reach your machine via local IP (e.g. due to network
+restrictions or firewall rules), you can use [ngrok](https://ngrok.com/) to
+expose your local server via a public URL:
+1. Install ngrok and authenticate with your account token
+2. Run the following command to forward your local WebSocket server:
+```
+   ngrok tcp 3000
+```
+3. ngrok will output a public URL like `tcp://0.tcp.ngrok.io:12345`. Update
+   your `.env` file to use it:
+```
+   URL=ws://0.tcp.ngrok.io:12345
+```
+4. Restart the server and reconnect your Quest — no need to be on the same
+   network
 
 ## Unity 2022.3.24f1
 
