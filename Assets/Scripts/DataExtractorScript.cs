@@ -174,6 +174,9 @@ public class UGDataExtractorScript : MonoBehaviour
         }
     }
 
+    private bool isSending = false;
+    private string latestMessage = null;
+
     void Update()
     {
         // Update all hand data arrays
@@ -189,9 +192,25 @@ public class UGDataExtractorScript : MonoBehaviour
                 type = "rightHandData",
                 handData = rightHandData
             };
-            string jsonData = JsonConvert.SerializeObject(data);
-            SendMessage(jsonData).ConfigureAwait(false);
+            latestMessage = JsonConvert.SerializeObject(data);
+
+            if (!isSending)
+                StartCoroutine(SendLatest());
         }
+    }
+
+    private IEnumerator SendLatest()
+    {
+        isSending = true;
+        while (latestMessage != null)
+        {
+            string toSend = latestMessage;
+            latestMessage = null;  // clear it, Update() will overwrite if new frame arrives
+            
+            Task sendTask = SendMessage(toSend);
+            yield return new WaitUntil(() => sendTask.IsCompleted);
+        }
+        isSending = false;
     }
 
     void OnDestroy()
